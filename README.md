@@ -3,9 +3,11 @@
 A modern chat interface for interacting with local Large Language Models using FastAPI and React. Features real-time streaming responses, conversation history management, and customizable generation parameters.
 
 ## Prerequisites
-Python 3.12+
-Node.js 22.17.0+
-A dedicated GPU (Optional, but performance will be slow on CPU only)
+- Python 3.12+
+
+- Node.js 22.17.0+
+
+- A dedicated GPU (Optional, but performance will be slow on CPU only)
 
 ## Instalation
 ### Backend Setup
