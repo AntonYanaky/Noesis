@@ -1,16 +1,16 @@
 import type { SidebarProps } from '../types';
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, temperature }) => {
   return (
     <>
       <div className={`absolute top-0 left-0 h-full w-full md:w-80 lg:w-96 bg-white border-r-4 border-black transform transition-transform duration-300 ease-in-out z-50 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div className="flex items-center justify-between p-4 border-b-4 border-black">
-          <h2 className="text-xl font-black uppercase">MENU</h2>
+          <h2 className="text-4xl font-black uppercase">MENU</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 bg-black text-white font-black hover:bg-gray-800 flex items-center justify-center text-base"
+            className="w-10 h-10 text-xl bg-black text-white font-black hover:bg-gray-800 flex items-center justify-center text-base"
           >
             ×
           </button>
@@ -48,6 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 max="1" 
                 step="0.1" 
                 className="w-full h-2" 
+                value={temperature}
                 defaultValue="0.7"
               />
             </div>
@@ -68,7 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {isOpen && (
         <div 
-          className="absolute inset-0 bg-black bg-opacity-50 z-40"
+          className="absolute inset-0 bg-opacity-50 z-40"
           onClick={onClose}
         />
       )}

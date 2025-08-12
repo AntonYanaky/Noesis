@@ -11,6 +11,7 @@ export default function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [temperature, setTemperature] = useState(0);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -54,7 +55,8 @@ export default function App() {
         },
         body: JSON.stringify({ 
           message: message,
-          history: conversationHistory
+          history: conversationHistory,
+          temperature: temperature,
         })
       });
 
@@ -105,6 +107,7 @@ export default function App() {
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
+        temperature={temperature}
       />
 
       <div className="flex-1 flex flex-col min-w-0">

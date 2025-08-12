@@ -6,6 +6,7 @@ export interface Message {
 export interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  temperature: number;
 }
 
 export interface HeaderProps {
