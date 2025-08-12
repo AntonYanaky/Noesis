@@ -14,8 +14,8 @@ A modern chat interface for interacting with local Large Language Models using F
 
 1. **Clone the repository**
 ```bash
-git clone <your-repo-url>
-cd <your-repo-name>
+git clone <repo-url>
+cd <repo-name>
 ```
 
 2. **Create and activate virtual environment**
