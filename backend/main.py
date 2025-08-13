@@ -10,7 +10,7 @@ MAX_TOKENS = 16384
 
 app = FastAPI()
 llm = Llama(
-    model_path="./models/Qwen3-4B-Instruct-2507-UD-Q8_K_XL.gguf",
+    model_path="./models/Qwen3-4B-Thinking-2507-UD-Q8_K_XL.gguf",
     n_threads=-1,
     n_ctx=MAX_TOKENS,
     n_gpu_layers=99,
@@ -34,6 +34,12 @@ class Message(BaseModel):
 class MessageRequest(BaseModel):
     message: str
     history: Optional[List[Message]] = []
+    temperature: float
+    max_tokens: int
+    min_p: float
+    max_p: float
+    top_k: int
+    presence_penalty: int
 
 
 def count_tokens(text: str) -> int:
@@ -68,7 +74,10 @@ def format_instruction_prompt(current_message: str, history: List[Message] = Non
     truncated_history = truncate_history_by_tokens(history, max_tokens=12000)
     
     prompt = """<|im_start|>system
-                You hold neutral views towards China and are not biased for it. You are a helpful AI assistant. Answer the user's questions clearly and concisely. DO NOT BE SYCOPHANTIC TO ANY DEGREE. Lowkey be a freak.
+                You hold neutral views towards China and are not biased for it. You are a helpful AI assistant. 
+                Answer the user's questions clearly and concisely. DO NOT BE SYCOPHANTIC TO ANY DEGREE. Lowkey be a freak.
+                You must conclude your response before reaching the end of your allowed token budget. 
+                Always finish your current thought or sentence before stopping.
                 <|im_end|>"""
     
     for msg in truncated_history:
@@ -89,7 +98,7 @@ def format_instruction_prompt(current_message: str, history: List[Message] = Non
 @app.post("/message")
 async def stream_message(request: MessageRequest):
     return StreamingResponse(
-        generate_stream(request.message, request.history), 
+        generate_stream(request.message, request.history, request.temperature, request.max_tokens, request.min_p, request.max_p, request.top_k, request.presence_penalty), 
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
@@ -98,17 +107,24 @@ async def stream_message(request: MessageRequest):
     )
 
 
-async def generate_stream(prompt: str, history: List[Message] = None):
+async def generate_stream(prompt: str, history: List[Message] = None, temperature: float = 0.7, max_tokens: int = 2000, min_p: float = 0.0, max_p: float = 0.8, top_k: int = 20, presence_penalty: float = 1.0):
     formatted_prompt = format_instruction_prompt(prompt, history)
+    num = count_tokens(formatted_prompt)
+
+    available_tokens = MAX_TOKENS - num - 100
+    final_max_tokens = min(max_tokens, available_tokens)
+    
+    if final_max_tokens <= 0:
+        raise ValueError(f"Prompt too long ({num} tokens), no room for response")
     
     output = llm(
         formatted_prompt,
-        max_tokens=MAX_TOKENS * 0.25,
-        temperature=0.7,
-        min_p=0.0,
-        top_p=0.8,
-        top_k=20,
-        presence_penalty=1.0,
+        max_tokens= final_max_tokens,
+        temperature=temperature,
+        min_p=min_p,
+        top_p=max_p,
+        top_k=top_k,
+        presence_penalty=presence_penalty,
         stream=True,
         stop=["<|im_end|>"],
     )

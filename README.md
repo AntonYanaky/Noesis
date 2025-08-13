@@ -29,20 +29,15 @@ source .venv/bin/activate
 pip install fastapi uvicorn llama-cpp-python pydantic
 ```
 
-4. **Download the model**
+4. **Download a model**
     - Create a `models/` directory in the project root
     - Download any `.gguf` llm and place it in the `models/` folder
 
-1. **Install Node.js dependencies**
+1. **Install dependencies**
 ```bash
 npm install
 # or
 yarn install
-```
-
-2. **Install required packages**
-```bash
-npm install react react-dom typescript @types/react @types/react-dom
 ```
 
 ## Usage

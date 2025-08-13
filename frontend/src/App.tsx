@@ -11,7 +11,12 @@ export default function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [temperature, setTemperature] = useState(0);
+  const [temperature, setTemperature] = useState(0.7);
+  const [tokenAmount, setTokenAmount] = useState(2000);
+  const [min_p, setMin_P] = useState(0.00);
+  const [top_p, setTop_P] = useState(0.80);
+  const [top_k, setTop_K] = useState(20);
+  const [presence_penalty, setPresence_Penalty] = useState(1.0);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -57,6 +62,11 @@ export default function App() {
           message: message,
           history: conversationHistory,
           temperature: temperature,
+          max_tokens: tokenAmount,
+          min_p: min_p,
+          max_p: top_p,
+          top_k: top_k,
+          presence_penalty: presence_penalty,
         })
       });
 
@@ -108,6 +118,17 @@ export default function App() {
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
         temperature={temperature}
+        setTemperature={setTemperature}
+        tokenAmount={tokenAmount}
+        setTokenAmount={setTokenAmount}
+        min_p={min_p}
+        setMin_P={setMin_P}
+        top_p={top_p}
+        setTop_P={setTop_P}
+        top_k={top_k}
+        setTop_K={setTop_K}
+        presence_penalty={presence_penalty}
+        setPresence_Penalty={setPresence_Penalty}
       />
 
       <div className="flex-1 flex flex-col min-w-0">

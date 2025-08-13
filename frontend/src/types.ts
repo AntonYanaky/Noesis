@@ -7,6 +7,17 @@ export interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
   temperature: number;
+  setTemperature: (value: number) => void;
+  tokenAmount: number;
+  setTokenAmount: (value: number) => void;
+  min_p:number;
+  setMin_P: (value: number) => void;
+  top_p:number;
+  setTop_P: (value: number) => void;
+  top_k:number;
+  setTop_K: (value: number) => void;
+  presence_penalty: number;
+  setPresence_Penalty: (value: number) => void;
 }
 
 export interface HeaderProps {
