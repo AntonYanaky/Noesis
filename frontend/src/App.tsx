@@ -11,12 +11,16 @@ export default function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [temperature, setTemperature] = useState(0.7);
   const [tokenAmount, setTokenAmount] = useState(2000);
   const [min_p, setMin_P] = useState(0.00);
   const [top_p, setTop_P] = useState(0.80);
   const [top_k, setTop_K] = useState(20);
   const [presence_penalty, setPresence_Penalty] = useState(1.0);
+
+  const [stats, setStats] = useState<Record<number, { totalTokens: number; tokensPerSecond: number }>>({});
+  const [showStats, SetShowStats] = useState(false)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -88,6 +92,15 @@ export default function App() {
               const data = JSON.parse(line.slice(6));
               if (data.done) {
                 setIsStreaming(false);
+                if (data.total_tokens !== undefined && data.tokens_per_second !== undefined) {
+                  setStats(prev => ({
+                    ...prev,
+                    [responseIndex]: {
+                      totalTokens: data.total_tokens,
+                      tokensPerSecond: data.tokens_per_second,
+                    }
+                  }));
+                }
                 return;
               }
               if (data.token) {
@@ -129,6 +142,8 @@ export default function App() {
         setTop_K={setTop_K}
         presence_penalty={presence_penalty}
         setPresence_Penalty={setPresence_Penalty}
+        showStats={showStats}
+        setShowStats={SetShowStats}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -137,6 +152,8 @@ export default function App() {
         <MessageList 
           responses={responses} 
           isStreaming={isStreaming} 
+          stats={stats}
+          showStats={showStats}
         />
         
         <InputForm

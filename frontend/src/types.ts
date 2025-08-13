@@ -18,15 +18,27 @@ export interface SidebarProps {
   setTop_K: (value: number) => void;
   presence_penalty: number;
   setPresence_Penalty: (value: number) => void;
+  showStats: boolean;
+  setShowStats: (value: boolean) => void;
 }
 
 export interface HeaderProps {
   onMenuClick: () => void;
 }
 
+export interface MessageItemProps {
+  response: string;
+  isStreaming: boolean;
+  isLastItem: boolean;
+  stats?: { totalTokens: number; tokensPerSecond: number };
+  showStats: boolean;
+}
+
 export interface MessageListProps {
   responses: string[];
   isStreaming: boolean;
+  stats: Record<number, { totalTokens: number; tokensPerSecond: number }>;
+  showStats: boolean
 }
 
 export interface InputFormProps {

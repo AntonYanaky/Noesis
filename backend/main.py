@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from llama_cpp import Llama
 import json
 from typing import List, Optional
+import time
 
 MAX_TOKENS = 16384
 
@@ -119,7 +120,7 @@ async def generate_stream(prompt: str, history: List[Message] = None, temperatur
     
     output = llm(
         formatted_prompt,
-        max_tokens= final_max_tokens,
+        max_tokens=final_max_tokens,
         temperature=temperature,
         min_p=min_p,
         top_p=max_p,
@@ -129,7 +130,23 @@ async def generate_stream(prompt: str, history: List[Message] = None, temperatur
         stop=["<|im_end|>"],
     )
     
+    start_time = time.time()
+    total_tokens = 0
+
     for chunk in output:
         token = chunk['choices'][0]['text']
+        total_tokens += 1
         yield f"data: {json.dumps({'token': token})}\n\n"
-    yield f"data: {json.dumps({'done': True})}\n\n"
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    
+    tokens_per_second = total_tokens / elapsed_time if elapsed_time > 0 else 0
+    
+    final_stats = {
+        'done': True,
+        'total_tokens': total_tokens,
+        'tokens_per_second': round(tokens_per_second, 2)
+    }
+    
+    yield f"data: {json.dumps(final_stats)}\n\n"

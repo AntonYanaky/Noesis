@@ -1,12 +1,8 @@
 import React, { useState, useMemo, memo } from 'react';
+import type { MessageItemProps } from '../types';
 
-interface MessageItemProps {
-  response: string;
-  isStreaming: boolean;
-  isLastItem: boolean;
-}
 
-const _MessageItem: React.FC<MessageItemProps> = ({ response, isStreaming, isLastItem }) => {
+const _MessageItem: React.FC<MessageItemProps> = ({ response, isStreaming, isLastItem, stats, showStats }) => {
   const [isThinkingOpen, setThinkingOpen] = useState<boolean>(false);
 
   const { displayText, thinkingText } = useMemo(() => {
@@ -45,7 +41,7 @@ const _MessageItem: React.FC<MessageItemProps> = ({ response, isStreaming, isLas
         {thinkingText && thinkingText.length > 0 && (
           <div className="mb-0">
             <button onClick={toggleThinkBlock} className="p-0 mb-2 text-black">
-              <span>Thinking</span>
+              <span>Thinking </span>
               <span className="ml-1">{isThinkingOpen ? '▲' : '▼'}</span>
             </button>
             {isThinkingOpen && (
@@ -57,6 +53,14 @@ const _MessageItem: React.FC<MessageItemProps> = ({ response, isStreaming, isLas
           {displayText}
           {isLastItem && isStreaming && <span className="animate-pulse">|</span>}
         </div>
+
+        {(stats && showStats) && (
+          <div className="mt-2 pt-2 border-t border-black text-xs text-black">
+            <span>{stats.totalTokens} tokens</span>
+            <span className="mx-2">|</span>
+            <span>{stats.tokensPerSecond.toFixed(2)} tok/s</span>
+          </div>
+        )}
       </div>
     </div>
   );

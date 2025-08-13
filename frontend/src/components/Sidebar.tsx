@@ -15,6 +15,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setTop_K,
   presence_penalty,
   setPresence_Penalty,
+  setShowStats,
+  showStats,
 }) => {
   return (
     <>
@@ -44,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="text-sm font-mono truncate">Another chat session...</div>
               <div className="text-xs text-gray-500">Yesterday</div>
             </div>
-            <button className="w-full p-3 text-left hover:bg-gray-200 font-black text-sm">
+            <button className="w-full p-3 text-left hover:bg-gray-200 font-black text-sm cursor-pointer">
               + NEW CHAT
             </button>
           </div>
@@ -55,6 +57,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <h3 className="font-black uppercase text-sm">SETTINGS</h3>
           </div>
           <div className="p-4 space-y-4">
+          <div>
+              <label className="flex items-center cursor-pointer">
+                <span className='block text-sm font-black uppercase'>SHOW TOK/S</span>
+                <input 
+                    type="checkbox"
+                    className="
+                        appearance-none ml-3 w-6 h-6 bg-white border-2 border-black cursor-pointer checked:bg-black"
+                    checked={showStats}
+                    onChange={(e) => setShowStats(e.target.checked)}
+                />
+              </label>
+          </div>
             <div>
               <label className="block text-sm font-black mb-1">MAX TOKENS</label>
               <input 
