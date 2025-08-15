@@ -32,13 +32,16 @@ export interface MessageItemProps {
   isLastItem: boolean;
   stats?: { totalTokens: number; tokensPerSecond: number };
   showStats: boolean;
+  messageIndex: number;
+  onEdit?: (index: number, newMessage: string) => void;
 }
 
 export interface MessageListProps {
   responses: string[];
   isStreaming: boolean;
   stats: Record<number, { totalTokens: number; tokensPerSecond: number }>;
-  showStats: boolean
+  showStats: boolean;
+  onEdit?: (index: number, newMessage: string) => void;
 }
 
 export interface InputFormProps {

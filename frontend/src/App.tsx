@@ -120,6 +120,115 @@ export default function App() {
     }
   };
 
+ const regenerateResponse = async (message: string, fromIndex: number) => {
+    setError(null);
+    setIsStreaming(true);
+    
+    const responseIndex = fromIndex + 1;
+    setResponses(prev => [...prev, '']);
+    
+    const conversationHistory: Message[] = [];
+    for (let i = 0; i < fromIndex; i += 2) {
+      if (responses[i]) {
+        conversationHistory.push({
+          role: "user",
+          content: responses[i]
+        });
+      }
+      if (responses[i + 1]) {
+        conversationHistory.push({
+          role: "assistant", 
+          content: responses[i + 1]
+        });
+      }
+    }
+    
+    try {
+      const response = await fetch('http://localhost:8000/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          message: message,
+          history: conversationHistory,
+          temperature: temperature,
+          max_tokens: tokenAmount,
+          min_p: min_p,
+          max_p: top_p,
+          top_k: top_k,
+          presence_penalty: presence_penalty,
+        })
+      });
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No reader available');
+      }
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = new TextDecoder().decode(value);
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.done) {
+                setIsStreaming(false);
+                if (data.total_tokens !== undefined && data.tokens_per_second !== undefined) {
+                  setStats(prev => ({
+                    ...prev,
+                    [responseIndex]: {
+                      totalTokens: data.total_tokens,
+                      tokensPerSecond: data.tokens_per_second,
+                    }
+                  }));
+                }
+                return;
+              }
+              if (data.token) {
+                setResponses(prev => {
+                  const updated = [...prev];
+                  updated[responseIndex] += data.token;
+                  return updated;
+                });
+              }
+            } catch (err) {}
+          }
+        }
+      }
+    } catch (err) {
+      setError('Connection failed');
+      setIsStreaming(false);
+    }
+  };
+
+  const handleEditMessage = async (messageIndex: number, newMessage: string) => {
+    if (messageIndex % 2 !== 0) return;
+    
+    const updatedResponses = [...responses];
+    updatedResponses[messageIndex] = newMessage;
+    
+    const truncatedResponses = updatedResponses.slice(0, messageIndex + 1);
+    
+    setResponses(truncatedResponses);
+    
+    const updatedStats = { ...stats };
+    Object.keys(updatedStats).forEach(key => {
+      const index = parseInt(key);
+      if (index > messageIndex) {
+        delete updatedStats[index];
+      }
+    });
+    setStats(updatedStats);
+    
+    await regenerateResponse(newMessage, messageIndex);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     streamMessage(input);
@@ -154,6 +263,7 @@ export default function App() {
           isStreaming={isStreaming} 
           stats={stats}
           showStats={showStats}
+          onEdit={handleEditMessage}
         />
         
         <InputForm
