@@ -1,8 +1,14 @@
+import { useState, useEffect } from 'react';
 import type { SidebarProps } from '../types';
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
   isOpen, 
-  onClose, 
+  onClose,
+  conversations,
+  currentConversationId,
+  onConversationSelect,
+  onNewConversation,
+  onDeleteConversation,
   temperature, 
   setTemperature,
   tokenAmount,
@@ -18,6 +24,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
   setShowStats,
   showStats,
 }) => {
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setDeleteConfirm(null);
+    }
+  }, [isOpen]);
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays === 1) return 'Yesterday';
+    return `${diffDays} days ago`;
+  };
+
+  const handleDeleteClick = (conversationId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (deleteConfirm === conversationId) {
+      onDeleteConversation(conversationId);
+      setDeleteConfirm(null);
+    } else {
+      setDeleteConfirm(conversationId);
+    }
+  };
   return (
     <>
       <div className={`absolute top-0 left-0 h-full w-full md:w-80 lg:w-96 bg-white border-r-4 border-black transform transition-transform duration-300 ease-in-out z-50 ${
@@ -38,15 +74,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <h3 className="font-black uppercase text-sm">CHAT HISTORY</h3>
           </div>
           <div className="max-h-64 overflow-y-auto">
-            <div className="p-3 border-b border-gray-300 hover:bg-gray-50 cursor-pointer">
-              <div className="text-sm font-mono truncate">Previous conversation 1...</div>
-              <div className="text-xs text-gray-500">2 hours ago</div>
-            </div>
-            <div className="p-3 border-b border-gray-300 hover:bg-gray-50 cursor-pointer">
-              <div className="text-sm font-mono truncate">Another chat session...</div>
-              <div className="text-xs text-gray-500">Yesterday</div>
-            </div>
-            <button className="w-full p-3 text-left hover:bg-gray-200 font-black text-sm cursor-pointer">
+            {conversations.map((conversation) => (
+              <div 
+                key={conversation.id}
+                className={`p-3 border-b border-gray-300 hover:bg-gray-50 cursor-pointer flex items-center justify-between ${
+                  currentConversationId === conversation.id ? 'bg-blue-100' : ''
+                }`}
+                onClick={() => onConversationSelect(conversation.id)}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-mono truncate">{conversation.title}</div>
+                  <div className="text-xs text-gray-500">{formatTimeAgo(conversation.updated_at)}</div>
+                </div>
+                <button
+                  onClick={(e) => handleDeleteClick(conversation.id, e)}
+                  className={`ml-2 px-2 py-1 text-xs border border-black hover:bg-black hover:text-white ${
+                    deleteConfirm === conversation.id ? 'bg-red-600 text-white' : 'bg-white'
+                  }`}
+                >
+                  {deleteConfirm === conversation.id ? '✓' : '×'}
+                </button>
+              </div>
+            ))}
+            <button 
+              onClick={onNewConversation}
+              className="w-full p-3 text-left hover:bg-gray-200 font-black text-sm cursor-pointer"
+            >
               + NEW CHAT
             </button>
           </div>

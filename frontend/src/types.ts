@@ -1,6 +1,37 @@
 export interface Message {
-  role: string;
+  role: 'user' | 'assistant';
   content: string;
+}
+
+export interface Conversation {
+  id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  conversations: Conversation[];
+  currentConversationId: string | null;
+  onConversationSelect: (id: string) => void;
+  onNewConversation: () => void;
+  onDeleteConversation: (id: string) => void;
+  temperature: number;
+  setTemperature: (temp: number) => void;
+  tokenAmount: number;
+  setTokenAmount: (amount: number) => void;
+  min_p: number;
+  setMin_P: (val: number) => void;
+  top_p: number;
+  setTop_P: (val: number) => void;
+  top_k: number;
+  setTop_K: (val: number) => void;
+  presence_penalty: number;
+  setPresence_Penalty: (val: number) => void;
+  showStats: boolean;
+  setShowStats: (show: boolean) => void;
 }
 
 export interface SidebarProps {

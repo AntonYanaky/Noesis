@@ -83,7 +83,7 @@ const _MessageItem: React.FC<MessageItemProps> = ({
 
   return (
     <div className={`mb-4 p-4 border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] ${
-      isUserMessage ? 'bg-blue-50 group' : 'bg-white'
+      isUserMessage ? 'group' : 'bg-white'
     }`}>
       <div className="font-mono text-black">
         {!isUserMessage && thinkingText && thinkingText.length > 0 && (

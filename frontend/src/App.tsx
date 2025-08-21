@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { MessageList } from './components/MessageList';
 import { InputForm } from './components/InputForm';
-import type { Message } from './types';
+import type { Message, Conversation  } from './types';
 
 export default function App() {
   const [input, setInput] = useState<string>('');
@@ -11,6 +11,9 @@ export default function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
 
   const [temperature, setTemperature] = useState(0.7);
   const [tokenAmount, setTokenAmount] = useState(2000);
@@ -20,13 +23,81 @@ export default function App() {
   const [presence_penalty, setPresence_Penalty] = useState(1.0);
 
   const [stats, setStats] = useState<Record<number, { totalTokens: number; tokensPerSecond: number }>>({});
-  const [showStats, SetShowStats] = useState(false)
+  const [showStats, setShowStats] = useState(false)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+
+  // Load conversations on mount
+  useEffect(() => {
+    loadConversations();
+  }, []);
+
+  const loadConversations = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/conversations');
+      const data = await response.json();
+      setConversations(data);
+    } catch (err) {
+      console.error('Failed to load conversations:', err);
+    }
+  };
+
+  const createNewConversation = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/conversations', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      setCurrentConversationId(data.conversation_id);
+      setResponses([]);
+      setStats({});
+      await loadConversations();
+    } catch (err) {
+      console.error('Failed to create conversation:', err);
+    }
+  };
+
+  const loadConversation = async (conversationId: string) => {
+    try {
+      const response = await fetch(`http://localhost:8000/conversations/${conversationId}/messages`);
+      const data = await response.json();
+      
+      const newResponses: string[] = [];
+      data.messages.forEach((msg: Message) => {
+        newResponses.push(msg.content);
+      });
+      
+      setCurrentConversationId(conversationId);
+      setResponses(newResponses);
+      setStats({}); // Reset stats when loading conversation
+    } catch (err) {
+      console.error('Failed to load conversation:', err);
+    }
+  };
+
+  const deleteConversation = async (conversationId: string) => {
+    try {
+      await fetch(`http://localhost:8000/conversations/${conversationId}`, {
+        method: 'DELETE',
+      });
+      
+      // If we're deleting the current conversation, reset the view
+      if (conversationId === currentConversationId) {
+        setCurrentConversationId(null);
+        setResponses([]);
+        setStats({});
+      }
+      
+      await loadConversations();
+    } catch (err) {
+      console.error('Failed to delete conversation:', err);
+    }
+  };
+
   const streamMessage = async (message: string) => {
     if (message === "") return;
-  
+
     setResponses(prev => [...prev, input]);
     setInput('');
 
@@ -64,7 +135,7 @@ export default function App() {
         },
         body: JSON.stringify({ 
           message: message,
-          history: conversationHistory,
+          conversation_id: currentConversationId,
           temperature: temperature,
           max_tokens: tokenAmount,
           min_p: min_p,
@@ -90,6 +161,13 @@ export default function App() {
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
+              
+              // Handle conversation_id from server
+              if (data.conversation_id && !currentConversationId) {
+                setCurrentConversationId(data.conversation_id);
+                await loadConversations();
+              }
+              
               if (data.done) {
                 setIsStreaming(false);
                 if (data.total_tokens !== undefined && data.tokens_per_second !== undefined) {
@@ -239,6 +317,11 @@ export default function App() {
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
+        conversations={conversations}
+        currentConversationId={currentConversationId}
+        onConversationSelect={loadConversation}
+        onNewConversation={createNewConversation}
+        onDeleteConversation={deleteConversation}
         temperature={temperature}
         setTemperature={setTemperature}
         tokenAmount={tokenAmount}
@@ -252,7 +335,7 @@ export default function App() {
         presence_penalty={presence_penalty}
         setPresence_Penalty={setPresence_Penalty}
         showStats={showStats}
-        setShowStats={SetShowStats}
+        setShowStats={setShowStats}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
